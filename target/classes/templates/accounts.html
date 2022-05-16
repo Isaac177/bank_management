@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="layout">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>ISAACBANK</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <section layout:fragment="content">
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Account Checking</div>
+                <div class="panel-body">
+                    <form th:action="@{/checkAccount}" method="get">
+                        <div>
+                            <label>Account Number : </label>
+                            <input type="text" name="codeAccount">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+                    <div th:if="${exception}" th:text="${exception}" class="red">
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-primary" th:if="${account}">
+                <div class="panel-heading">Account Information</div>
+                <div class="panel-body">
+                    <div>
+                        <label>Client: </label>
+                        <label th:text="${account.client.name}"></label>
+                    </div>
+                    <div>
+                        <label>Number : </label>
+                        <label th:text="${account.codeAccount}"></label>
+                    </div>
+                    <div>
+                        <label>Creation Date : </label>
+                        <label th:text="${account.dateCreation}"></label>
+                    </div>
+                    <div>
+                        <label>Balance : </label>
+                        <label th:text="${account.balance}"></label>
+                    </div>
+                    <div>
+                        <label>Type : </label>
+                        <label th:text="${account.class.simpleName}"></label>
+                    </div>
+                    <div th:if="${account.class.simpleName} == 'CurrentAccount'">
+                        <label>Overdraft : </label>
+                        <label th:text="${account.overdraft}"></label>
+                    </div>
+                    <div th:if="${account.class.simpleName} == 'SavingAccount'">
+                        <label>Rate : </label>
+                        <label th:text="${account.rate}"></label>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" th:if="${account}">
+            <div class="panel panel-primary" sec:authorize="hasRole('ROLE_ADMIN')">
+                <div class="panel-heading">Account Operations</div>
+                <div class="panel-body">
+                    <form th:action="@{/save}" method="post">
+                        <div>
+                            <label>Account</label>
+                            <input type="hidden" name="codeAccount" th:value="${account.codeAccount}">
+                            <label th:text="${account.codeAccount}"></label>
+                        </div>
+                        <div>
+                            <input type="radio" name="typeOperation" th:value="DEP" checked="checked" onchange="document.getElementById('forTo').style.display='none'">
+                            <label>Deposit</label>
+                            <input type="radio" name="typeOperation" th:value="WITH" onchange="document.getElementById('forTo').style.display='none'">
+                            <label>Withdrawal</label>
+                            <input type="radio" name="typeOperation" th:value="TR" onchange="document.getElementById('forTo').style.display='block'">
+                            <label>Transfer</label>
+                        </div>
+                        <div id="forTo" style="display:none">
+                            <label>TO : </label>
+                            <input type="text" name="codeAccount2">
+                        </div>
+                        <div>
+                            <label>Amount : </label>
+                            <input type="text" name="amount">
+                        </div>
+                        <div th:text="${#httpServletRequest.getParameter('error')}" class="red"></div>
+
+                        <button type="submit" class="btn btn-primary">Validate</button>
+
+                    </form>
+
+                </div>
+            </div>
+            <div class="panel panel-primary" th:if="${account}">
+                <div class="panel-heading">Operations' list</div>
+                <div class="panel-body">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>No</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                        <tr th:each="o : ${listOperations}">
+                            <td th:text="${o.id}"></td> <!--numero-->
+                            <td th:text="${o.class.simpleName}"></td>
+                            <td th:text="${o.dateOperation}"></td>
+                            <td th:text="${o.amount}"></td>
+                        </tr>
+                    </table>
+                    <div class="container">
+                        <ul class="nav nav-pills">
+                            <li th:each="p,status:${pages}">
+                                <a th:href="@{checkAccount(codeAccount=${codeAccount},page=${status.index})}" th:text="${status.index}"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>
